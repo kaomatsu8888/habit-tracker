@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,8 +18,10 @@
 
   <!-- Chart.js: 週別学習グラフに使用 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-</head>
 
+  <!-- SortableJS: カテゴリカードのドラッグ並び替えに使用 -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+</head>
 <body>
 
   <!-- 固定ヘッダー（タイトル・月ナビ・サマリー） -->
@@ -62,10 +63,10 @@
   <!-- スクロール領域 -->
   <div class="container">
     <div class="scroll-body confetti-wrap">
+
       <!-- 週別学習グラフ（アコーディオン） -->
       <div class="accordion" id="chart-accordion">
-        <div class="acc-header" id="acc-toggle" role="button" tabindex="0" aria-expanded="false"
-          aria-controls="acc-body">
+        <div class="acc-header" id="acc-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="acc-body">
           <div class="acc-title">
             <i class="ti ti-chart-bar" aria-hidden="true"></i>
             週別学習グラフ
@@ -79,7 +80,8 @@
           </div>
         </div>
       </div>
-      <!-- カテゴリカードのリスト -->
+
+      <!-- カテゴリカードのリスト（SortableJS対象） -->
       <div class="categories" id="cat-list"></div>
 
       <!-- メールアドレス入力（30日達成通知用） -->
@@ -95,11 +97,19 @@
         <button id="add-btn"><i class="ti ti-plus"></i> 追加</button>
       </div>
 
-
-      <!-- リセットボタン -->
-      <div class="danger-zone">
+      <!-- データ管理（エクスポート・インポート・リセット） -->
+      <div class="data-zone">
+        <div class="data-zone-left">
+          <button class="data-btn" id="export-btn">
+            <i class="ti ti-download"></i> エクスポート
+          </button>
+          <button class="data-btn" id="import-btn">
+            <i class="ti ti-upload"></i> インポート
+          </button>
+          <input type="file" id="import-input" accept=".json" style="display:none;">
+        </div>
         <button class="reset-btn" id="reset-btn">
-          <i class="ti ti-trash"></i> データをリセット
+          <i class="ti ti-trash"></i> リセット
         </button>
       </div>
 
@@ -116,13 +126,13 @@
      */
     emailjs.init('0eJgGaSI3oSroJt0r');
 
-    const EMAILJS_SERVICE_ID = 'service_qd0jgt4';
+    const EMAILJS_SERVICE_ID  = 'service_qd0jgt4';
     const EMAILJS_TEMPLATE_ID = 'template_v8vdw6n';
 
     /* =====================
        定数・設定
     ===================== */
-    const DAYS_JP = ['日', '月', '火', '水', '木', '金', '土'];
+    const DAYS_JP = ['日','月','火','水','木','金','土'];
     const COLORS = [
       { done: '#534AB7', light: '#EEEDFE', text: '#3C3489' },
       { done: '#0F6E56', light: '#E1F5EE', text: '#085041' },
@@ -131,14 +141,15 @@
       { done: '#BA7517', light: '#FAEEDA', text: '#854F0B' },
       { done: '#993556', light: '#FBEAF0', text: '#72243E' },
     ];
-    const ICONS = ['ti-code', 'ti-language', 'ti-book', 'ti-pencil', 'ti-music', 'ti-calculator', 'ti-chart-bar', 'ti-brain', 'ti-device-desktop', 'ti-palette'];
-    const THRESHOLD = 30;
+    const ICONS = ['ti-code','ti-language','ti-book','ti-pencil','ti-music','ti-calculator','ti-chart-bar','ti-brain','ti-device-desktop','ti-palette'];
+    const THRESHOLD   = 30;
     const STORAGE_KEY = 'habit_tracker_v1';
 
     const defaultCats = [
-      { id: 'prog', name: 'プログラミング', icon: 'ti-code' },
-      { id: 'lang', name: '語学', icon: 'ti-language' },
-      { id: 'book', name: '読書', icon: 'ti-book' },
+      { id: 'exercise',     name: '運動',           icon: 'ti-run' },
+      { id: 'prog',         name: 'プログラミング', icon: 'ti-code' },
+      { id: 'meditation',   name: '瞑想',           icon: 'ti-brain' },
+      { id: 'entrepreneur', name: '起業調査・行動', icon: 'ti-rocket' },
     ];
 
     /* =====================
@@ -156,18 +167,18 @@
           const saved = JSON.parse(raw);
           return {
             categories: saved.categories || [...defaultCats],
-            logs: saved.logs || {},
-            minutes: saved.minutes || {},
-            email: saved.email || '',
-            viewYear: new Date().getFullYear(),
+            logs:        saved.logs      || {},
+            minutes:     saved.minutes   || {},
+            email:       saved.email     || '',
+            viewYear:  new Date().getFullYear(),
             viewMonth: new Date().getMonth(),
           };
         }
-      } catch (e) { }
+      } catch(e) {}
       return {
         categories: [...defaultCats],
         logs: {}, minutes: {}, email: '',
-        viewYear: new Date().getFullYear(),
+        viewYear:  new Date().getFullYear(),
         viewMonth: new Date().getMonth(),
       };
     }
@@ -179,12 +190,12 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           categories: state.categories,
-          logs: state.logs,
-          minutes: state.minutes,
-          email: state.email,
+          logs:       state.logs,
+          minutes:    state.minutes,
+          email:      state.email,
         }));
         flashSave();
-      } catch (e) { }
+      } catch(e) {}
     }
 
     /** 自動保存インジケーターを一瞬緑にする */
@@ -220,6 +231,67 @@
     function firstDay(y, m) { return new Date(y, m, 1).getDay(); }
 
     /* =====================
+       エクスポート・インポート
+    ===================== */
+
+    /**
+     * 現在の全データをJSONファイルとしてダウンロードする。
+     */
+    function exportData() {
+      const payload = {
+        version:    1,
+        exportedAt: new Date().toISOString(),
+        categories: state.categories,
+        logs:       state.logs,
+        minutes:    state.minutes,
+        email:      state.email,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const date = new Date().toISOString().slice(0, 10);
+      a.href     = url;
+      a.download = `habit-tracker-${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /**
+     * JSONファイルを読み込んでデータを復元する。
+     * @param {File} file 読み込むJSONファイル
+     */
+    function importData(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed.categories || !parsed.logs) {
+            alert('ファイルの形式が正しくありません。');
+            return;
+          }
+          if (!confirm('現在のデータをインポートしたデータで上書きしますか？')) return;
+          state = {
+            categories: parsed.categories || [...defaultCats],
+            logs:        parsed.logs      || {},
+            minutes:     parsed.minutes   || {},
+            email:       parsed.email     || '',
+            viewYear:  new Date().getFullYear(),
+            viewMonth: new Date().getMonth(),
+          };
+          saveState();
+          if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+          render();
+          initSortable();
+          updateChart();
+          alert('インポートが完了しました！');
+        } catch(err) {
+          alert('ファイルの読み込みに失敗しました。正しいJSONファイルか確認してください。');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* =====================
        ロジック
     ===================== */
 
@@ -249,25 +321,21 @@
 
     /**
      * 日付セルをトグルする。
-     * 30日達成のタイミングでコンフェッティとメール通知を発火する。
      * @param {string} catId
      * @param {number} y
      * @param {number} m
      * @param {number} d
      */
     function toggle(catId, y, m, d) {
-      const cat = state.categories.find(c => c.id === catId);
-      const k = dkey(catId, y, m, d);
+      const cat         = state.categories.find(c => c.id === catId);
+      const k           = dkey(catId, y, m, d);
       const wasUnlocked = isUnlocked(catId);
-
-      state.logs[k] = !state.logs[k];
-
+      state.logs[k]     = !state.logs[k];
       const nowUnlocked = isUnlocked(catId);
       if (!wasUnlocked && nowUnlocked) {
         triggerConfetti(catId);
         sendUnlockEmail(cat);
       }
-
       saveState();
       render();
       updateChart();
@@ -275,15 +343,14 @@
 
     /**
      * 30日達成時にEmailJSでメール通知を送信する。
-     * メールアドレスが未設定の場合はスキップする。
      * @param {object} cat カテゴリオブジェクト
      */
     function sendUnlockEmail(cat) {
       if (!state.email) return;
       emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
         category_name: cat.name,
-        email: state.email,
-        name: 'Kaoru',
+        email:         state.email,
+        name:          'Kaoru',
       }).catch(err => console.error('EmailJS error:', err));
     }
 
@@ -297,7 +364,7 @@
      */
     function setMinutes(catId, y, m, d, val) {
       const mk = mkey(catId, y, m, d);
-      const n = parseInt(val, 10);
+      const n  = parseInt(val, 10);
       if (!isNaN(n) && n >= 0) state.minutes[mk] = n;
       else delete state.minutes[mk];
       saveState();
@@ -309,26 +376,55 @@
      * @param {string} catId
      */
     function triggerConfetti(catId) {
-      const card = document.querySelector(`[data-catid="${catId}"]`);
-      const wrap = document.querySelector('.confetti-wrap');
+      const card     = document.querySelector(`[data-catid="${catId}"]`);
+      const wrap     = document.querySelector('.confetti-wrap');
       if (!wrap) return;
       const wrapRect = wrap.getBoundingClientRect();
-      const rect = card ? card.getBoundingClientRect() : null;
-      const cx = rect ? rect.left - wrapRect.left + rect.width / 2 : 200;
-      const cy = rect ? rect.top - wrapRect.top + 40 : 80;
+      const rect     = card ? card.getBoundingClientRect() : null;
+      const cx       = rect ? rect.left - wrapRect.left + rect.width / 2 : 200;
+      const cy       = rect ? rect.top  - wrapRect.top  + 40             : 80;
       for (let i = 0; i < 60; i++) {
-        const el = document.createElement('div');
-        const colors = ['#534AB7', '#0F6E56', '#D85A30', '#185FA5', '#BA7517', '#993556'];
+        const el     = document.createElement('div');
+        const colors = ['#534AB7','#0F6E56','#D85A30','#185FA5','#BA7517','#993556'];
         el.style.cssText = `position:absolute;width:7px;height:7px;background:${colors[i % colors.length]};border-radius:2px;left:${cx}px;top:${cy}px;opacity:1;pointer-events:none;z-index:999;transition:transform 1.6s ease-out,opacity 1.6s;`;
         wrap.appendChild(el);
         const angle = Math.random() * Math.PI * 2;
-        const dist = 80 + Math.random() * 200;
+        const dist  = 80 + Math.random() * 200;
         setTimeout(() => {
           el.style.transform = `translate(${Math.cos(angle) * dist}px,${Math.sin(angle) * dist + 60}px) rotate(${Math.random() * 360}deg)`;
-          el.style.opacity = '0';
+          el.style.opacity   = '0';
         }, 30);
         setTimeout(() => el.remove(), 1700);
       }
+    }
+
+    /* =====================
+       SortableJS 並び替え
+    ===================== */
+
+    let sortableInstance = null;
+
+    /**
+     * SortableJSを初期化する。
+     * ドラッグ完了後に state.categories の順序を更新して保存する。
+     */
+    function initSortable() {
+      const el = document.getElementById('cat-list');
+      if (sortableInstance) sortableInstance.destroy();
+      sortableInstance = Sortable.create(el, {
+        animation:  200,
+        handle:     '.drag-handle',
+        ghostClass: 'sortable-ghost',
+        onEnd: (evt) => {
+          // DOM の並び順に合わせて state.categories を並び替える
+          const newOrder = [...el.querySelectorAll('[data-catid]')].map(el => el.dataset.catid);
+          state.categories = newOrder.map(id => state.categories.find(c => c.id === id)).filter(Boolean);
+          saveState();
+          // 色の再割り当てのため再描画
+          render();
+          updateChart();
+        },
+      });
     }
 
     /* =====================
@@ -342,24 +438,23 @@
      * @returns {{ labels: string[], datasets: object[] }}
      */
     function buildChartData() {
-      const t = today();
+      const t    = today();
       const base = new Date(t.y, t.m, t.d);
-      // 今週の月曜日を起点にする
-      const dow = (base.getDay() + 6) % 7; // 0=月曜
-      const mon = new Date(base); mon.setDate(base.getDate() - dow);
+      const dow  = (base.getDay() + 6) % 7;
+      const mon  = new Date(base); mon.setDate(base.getDate() - dow);
 
-      const labels = [];
+      const labels     = [];
       const weekStarts = [];
       for (let w = 7; w >= 0; w--) {
         const ws = new Date(mon); ws.setDate(mon.getDate() - w * 7);
         weekStarts.push(new Date(ws));
-        if (w === 0) labels.push('今週');
+        if (w === 0)      labels.push('今週');
         else if (w === 1) labels.push('先週');
-        else labels.push(`${w}週前`);
+        else              labels.push(`${w}週前`);
       }
 
       const datasets = state.categories.map((cat, idx) => {
-        const c = COLORS[idx % COLORS.length];
+        const c    = COLORS[idx % COLORS.length];
         const data = weekStarts.map(ws => {
           let count = 0;
           for (let d = 0; d < 7; d++) {
@@ -371,20 +466,18 @@
           return count;
         });
         return {
-          label: cat.name,
+          label:           cat.name,
           data,
           backgroundColor: c.done,
-          borderRadius: 3,
-          borderSkipped: false,
+          borderRadius:    3,
+          borderSkipped:   false,
         };
       });
 
       return { labels, datasets };
     }
 
-    /**
-     * グラフの凡例HTMLを生成して描画する。
-     */
+    /** グラフの凡例HTMLを生成して描画する */
     function renderLegend() {
       const el = document.getElementById('chart-legend');
       if (!el) return;
@@ -394,16 +487,13 @@
       }).join('');
     }
 
-    /**
-     * グラフを新規作成 or データ更新する。
-     * アコーディオンが閉じている場合はスキップする。
-     */
+    /** グラフを新規作成 or データ更新する */
     function updateChart() {
       const body = document.getElementById('acc-body');
       if (!body || body.hidden) return;
       const { labels, datasets } = buildChartData();
       if (chartInstance) {
-        chartInstance.data.labels = labels;
+        chartInstance.data.labels   = labels;
         chartInstance.data.datasets = datasets;
         chartInstance.update();
         renderLegend();
@@ -414,7 +504,7 @@
         type: 'bar',
         data: { labels, datasets },
         options: {
-          responsive: true,
+          responsive:          true,
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
@@ -428,14 +518,14 @@
           scales: {
             x: {
               stacked: true,
-              grid: { display: false },
-              ticks: { font: { size: 11 }, color: '#9f9f97', autoSkip: false, maxRotation: 0 },
+              grid:    { display: false },
+              ticks:   { font: { size: 11 }, color: '#9f9f97', autoSkip: false, maxRotation: 0 },
             },
             y: {
               stacked: true,
-              min: 0,
-              grid: { color: 'rgba(128,128,128,0.1)' },
-              ticks: { font: { size: 11 }, color: '#9f9f97', stepSize: 1, precision: 0 },
+              min:     0,
+              grid:    { color: 'rgba(128,128,128,0.1)' },
+              ticks:   { font: { size: 11 }, color: '#9f9f97', stepSize: 1, precision: 0 },
             },
           },
         },
@@ -444,11 +534,11 @@
 
     /** アコーディオンの開閉を切り替える */
     function toggleAccordion() {
-      const body = document.getElementById('acc-body');
-      const icon = document.getElementById('acc-icon');
+      const body   = document.getElementById('acc-body');
+      const icon   = document.getElementById('acc-icon');
       const toggle = document.getElementById('acc-toggle');
       const isOpen = !body.hidden;
-      body.hidden = isOpen;
+      body.hidden  = isOpen;
       icon.classList.toggle('open', !isOpen);
       toggle.setAttribute('aria-expanded', String(!isOpen));
       if (!isOpen) updateChart();
@@ -460,33 +550,33 @@
 
     /**
      * カテゴリカードのHTMLを生成して返す。
-     * @param {object} cat カテゴリオブジェクト
-     * @param {number} idx インデックス（色の決定に使用）
-     * @returns {string} HTML文字列
+     * @param {object} cat
+     * @param {number} idx
+     * @returns {string}
      */
     function renderCat(cat, idx) {
-      const c = COLORS[idx % COLORS.length];
+      const c          = COLORS[idx % COLORS.length];
       const { viewYear: vy, viewMonth: vm } = state;
-      const t = today();
-      const dim = daysInMonth(vy, vm);
-      const fd = firstDay(vy, vm);
+      const t          = today();
+      const dim        = daysInMonth(vy, vm);
+      const fd         = firstDay(vy, vm);
       const isCurMonth = (vy === t.y && vm === t.m);
-      const streak = calcStreak(cat.id);
-      const unlocked = isUnlocked(cat.id);
-      const pct = Math.min(100, Math.round(streak / THRESHOLD * 100));
-      const remaining = Math.max(0, THRESHOLD - streak);
-      const deletable = !defaultCats.find(dc => dc.id === cat.id);
+      const streak     = calcStreak(cat.id);
+      const unlocked   = isUnlocked(cat.id);
+      const pct        = Math.min(100, Math.round(streak / THRESHOLD * 100));
+      const remaining  = Math.max(0, THRESHOLD - streak);
+      const deletable  = !defaultCats.find(dc => dc.id === cat.id);
 
       let cells = '';
       for (let i = 0; i < fd; i++) cells += `<div class="day-cell empty"></div>`;
       for (let d = 1; d <= dim; d++) {
-        const k = dkey(cat.id, vy, vm, d);
-        const done = !!state.logs[k];
+        const k        = dkey(cat.id, vy, vm, d);
+        const done     = !!state.logs[k];
         const isFuture = isCurMonth && d > t.d;
-        const isToday = isCurMonth && d === t.d;
-        const cls = 'day-cell' + (done ? ' done' : '') + (isToday ? ' today' : '') + (isFuture ? ' future' : '');
-        const style = done ? `background:${c.done};` : '';
-        const oc = isFuture ? '' : `onclick="toggle('${cat.id}',${vy},${vm},${d})"`;
+        const isToday  = isCurMonth && d === t.d;
+        const cls      = 'day-cell' + (done ? ' done' : '') + (isToday ? ' today' : '') + (isFuture ? ' future' : '');
+        const style    = done ? `background:${c.done};` : '';
+        const oc       = isFuture ? '' : `onclick="toggle('${cat.id}',${vy},${vm},${d})"`;
         cells += `<div class="${cls}" style="${style}" ${oc} title="${d}日">
           ${done ? `<i class="ti ti-check" style="font-size:12px;color:#fff;"></i>` : d}
         </div>`;
@@ -512,8 +602,8 @@
         for (let d = 1; d <= dim; d++) {
           bars.push({ d, min: state.minutes[mkey(cat.id, vy, vm, d)] || 0, done: !!state.logs[dkey(cat.id, vy, vm, d)] });
         }
-        const maxMin = Math.max(1, ...bars.map(b => b.min));
-        const barHtml = bars.map(b => {
+        const maxMin   = Math.max(1, ...bars.map(b => b.min));
+        const barHtml  = bars.map(b => {
           const h = b.min > 0 ? Math.max(4, Math.round(b.min / maxMin * 48)) : 2;
           return `<div class="bar-wrap">
             <div class="bar" style="height:${h}px;background:${b.min > 0 ? c.done : 'var(--bg-secondary)'};" title="${b.d}日: ${b.min}分"></div>
@@ -521,8 +611,8 @@
           </div>`;
         }).join('');
         const totalMin = bars.reduce((s, b) => s + b.min, 0);
-        const h = Math.floor(totalMin / 60);
-        const m = totalMin % 60;
+        const h        = Math.floor(totalMin / 60);
+        const m        = totalMin % 60;
         const todayMin = isCurMonth ? (state.minutes[mkey(cat.id, vy, vm, t.d)] || 0) : 0;
 
         timeHtml = `
@@ -545,6 +635,10 @@
       return `<div class="cat-card" data-catid="${cat.id}">
         <div class="cat-header">
           <div class="cat-title">
+            <!-- ドラッグハンドル -->
+            <span class="drag-handle" title="ドラッグして並び替え" aria-label="並び替え">
+              <i class="ti ti-grip-vertical" aria-hidden="true"></i>
+            </span>
             <i class="ti ${cat.icon}" style="font-size:18px;color:${c.done};"></i>
             ${cat.name}
           </div>
@@ -560,28 +654,22 @@
       </div>`;
     }
 
-    /**
-     * サマリーカードの数値を更新する。
-     */
+    /** サマリーカードの数値を更新する */
     function renderStats() {
       const { viewYear: vy, viewMonth: vm } = state;
-      const t = today();
-      const dim = daysInMonth(vy, vm);
+      const t          = today();
+      const dim        = daysInMonth(vy, vm);
       const isCurMonth = (vy === t.y && vm === t.m);
-      const elapsed = isCurMonth ? t.d : dim;
-      const doneSet = new Set();
-
+      const elapsed    = isCurMonth ? t.d : dim;
+      const doneSet    = new Set();
       state.categories.forEach(cat => {
         for (let d = 1; d <= elapsed; d++) {
           if (state.logs[dkey(cat.id, vy, vm, d)]) doneSet.add(d);
         }
       });
-
       document.getElementById('stat-days').textContent = doneSet.size + '日';
-
       const unlockedCount = state.categories.filter(c => isUnlocked(c.id)).length;
       document.getElementById('stat-unlocked').textContent = `${unlockedCount} / ${state.categories.length}`;
-
       let totalMin = 0;
       state.categories.forEach(cat => {
         if (isUnlocked(cat.id)) {
@@ -593,9 +681,7 @@
       document.getElementById('stat-time').textContent = totalMin > 0 ? (h > 0 ? h + 'h ' : '') + m + 'm' : '—';
     }
 
-    /**
-     * 画面全体を再描画する。
-     */
+    /** 画面全体を再描画する */
     function render() {
       const { viewYear: vy, viewMonth: vm } = state;
       document.getElementById('month-label').textContent = `${vy}年${vm + 1}月`;
@@ -603,13 +689,15 @@
       renderStats();
       const emailInput = document.getElementById('email-input');
       if (emailInput) emailInput.value = state.email || '';
+      // render後にSortableを再初期化（DOM再生成のため）
+      initSortable();
     }
 
     /* =====================
        イベントハンドラ
     ===================== */
 
-    window.toggle = toggle;
+    window.toggle     = toggle;
     window.setMinutes = setMinutes;
 
     document.getElementById('acc-toggle').addEventListener('click', toggleAccordion);
@@ -617,7 +705,19 @@
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(); }
     });
 
-    window.deleteCat = function (id) {
+    document.getElementById('export-btn').onclick = exportData;
+
+    document.getElementById('import-btn').onclick = () => {
+      document.getElementById('import-input').click();
+    };
+
+    document.getElementById('import-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) importData(file);
+      e.target.value = '';
+    });
+
+    window.deleteCat = function(id) {
       const cat = state.categories.find(c => c.id === id);
       if (!confirm(`「${cat?.name}」を削除しますか？`)) return;
       state.categories = state.categories.filter(c => c.id !== id);
@@ -642,9 +742,9 @@
 
     document.getElementById('add-btn').onclick = () => {
       const input = document.getElementById('new-cat');
-      const name = input.value.trim();
+      const name  = input.value.trim();
       if (!name) return;
-      const id = 'cat_' + Date.now();
+      const id   = 'cat_' + Date.now();
       const icon = ICONS[state.categories.length % ICONS.length];
       state.categories.push({ id, name, icon });
       input.value = '';
@@ -663,7 +763,7 @@
       state = {
         categories: [...defaultCats],
         logs: {}, minutes: {}, email: '',
-        viewYear: new Date().getFullYear(),
+        viewYear:  new Date().getFullYear(),
         viewMonth: new Date().getMonth(),
       };
       if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
@@ -673,5 +773,4 @@
     render();
   </script>
 </body>
-
 </html>

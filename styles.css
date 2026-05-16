@@ -35,9 +35,7 @@
 }
 
 /* 全体レイアウト */
-html, body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
 body {
   font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
@@ -118,9 +116,7 @@ body {
   color: var(--text-primary);
 }
 
-.month-nav button:hover {
-  background: var(--bg-secondary);
-}
+.month-nav button:hover { background: var(--bg-secondary); }
 
 /* サマリーストリップ */
 .summary-row {
@@ -160,9 +156,7 @@ body {
 /* =============================
    スクロール領域
    ============================= */
-.scroll-body {
-  padding-top: 1.25rem;
-}
+.scroll-body { padding-top: 1.25rem; }
 
 /* カテゴリカード */
 .categories {
@@ -193,15 +187,8 @@ body {
   font-weight: 500;
 }
 
-.streak-badge {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.streak-badge span {
-  font-weight: 500;
-  color: var(--text-primary);
-}
+.streak-badge { font-size: 12px; color: var(--text-secondary); }
+.streak-badge span { font-weight: 500; color: var(--text-primary); }
 
 /* 曜日ラベル */
 .day-label-row {
@@ -211,11 +198,7 @@ body {
   margin-bottom: 2px;
 }
 
-.day-label {
-  font-size: 10px;
-  color: var(--text-tertiary);
-  text-align: center;
-}
+.day-label { font-size: 10px; color: var(--text-tertiary); text-align: center; }
 
 /* 日付グリッド */
 .day-grid {
@@ -240,11 +223,7 @@ body {
   user-select: none;
 }
 
-.day-cell:hover {
-  transform: scale(1.1);
-  border-color: var(--border-mid);
-}
-
+.day-cell:hover { transform: scale(1.1); border-color: var(--border-mid); }
 .day-cell.done { border-color: transparent; }
 .day-cell.today { box-shadow: 0 0 0 1.5px var(--border-mid); }
 .day-cell.future { opacity: 0.3; cursor: default; pointer-events: none; }
@@ -296,11 +275,7 @@ body {
   margin-bottom: 6px;
 }
 
-.time-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.time-input-row { display: flex; align-items: center; gap: 8px; }
 
 .time-input-row input[type=number] {
   width: 68px;
@@ -319,17 +294,9 @@ body {
   box-shadow: 0 0 0 2px var(--border-mid);
 }
 
-.time-input-row span {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
+.time-input-row span { font-size: 13px; color: var(--text-secondary); }
 
-.total-time {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 6px;
-}
-
+.total-time { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
 .total-time strong { color: var(--text-primary); }
 
 .bar-chart {
@@ -349,11 +316,7 @@ body {
 }
 
 .bar { width: 100%; border-radius: 3px 3px 0 0; }
-
-.bar-dlabel {
-  font-size: 9px;
-  color: var(--text-tertiary);
-}
+.bar-dlabel { font-size: 9px; color: var(--text-tertiary); }
 
 .locked-msg {
   display: flex;
@@ -415,8 +378,7 @@ body {
   box-shadow: 0 0 0 2px var(--border-mid);
 }
 
-.add-row button,
-.reset-btn {
+.add-row button {
   height: 36px;
   padding: 0 14px;
   border-radius: var(--radius-md);
@@ -434,8 +396,11 @@ body {
    週別グラフアコーディオン
    ============================= */
 .accordion {
-  margin-top: 0;
-  margin-bottom: 1rem;  /* ← 下にマージンを移す */
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
 }
 
 .acc-header {
@@ -501,20 +466,56 @@ body {
   height: 200px;
 }
 
-/* リセットボタン */
-.danger-zone {
+/* =============================
+   データ管理エリア
+   ============================= */
+.data-zone {
   margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 0.5px solid var(--border-light);
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.data-zone-left {
+  display: flex;
+  gap: 8px;
+}
+
+.data-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-mid);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.data-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .reset-btn {
-  font-size: 12px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-mid);
+  background: var(--bg-primary);
   color: var(--text-tertiary);
-  height: auto;
-  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .reset-btn:hover {
@@ -534,4 +535,23 @@ body {
   padding: 0;
   display: flex;
   align-items: center;
+}
+
+/* ドラッグハンドル */
+.drag-handle {
+  cursor: grab;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  touch-action: none;
+}
+
+.drag-handle:active { cursor: grabbing; }
+
+/* ドラッグ中のゴーストカード */
+.sortable-ghost {
+  opacity: 0.4;
+  background: var(--bg-secondary);
 }
