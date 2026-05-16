@@ -55,18 +55,6 @@ body {
 /* =============================
    固定ヘッダー
    ============================= */
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg-primary);
-  border-bottom: 0.5px solid var(--border-light);
-  padding: 12px 1rem;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-/* sticky-header を body 直下に出すためのラッパー */
 .sticky-header-outer {
   position: sticky;
   top: 0;
@@ -157,6 +145,17 @@ body {
 .summary-card .svalue {
   font-size: 18px;
   font-weight: 500;
+}
+
+/* ストレージ注意書き */
+.storage-note {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 8px;
+  line-height: 1.5;
 }
 
 /* =============================
@@ -389,11 +388,38 @@ body {
   padding: 0.5rem 0;
 }
 
+/* メールアドレス入力 */
+.email-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.5rem;
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+.email-row input {
+  flex: 1;
+  font-size: 14px;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-mid);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.email-row input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--border-mid);
+}
+
 /* カテゴリ追加行 */
 .add-row {
   display: flex;
   gap: 8px;
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
 }
 
 .add-row input {
