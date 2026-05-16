@@ -69,7 +69,6 @@ body {
   padding: 12px 1rem;
 }
 
-/* ヘッダー上段 */
 .header {
   display: flex;
   align-items: center;
@@ -123,7 +122,7 @@ body {
   background: var(--bg-secondary);
 }
 
-/* サマリーストリップ（ヘッダー下段） */
+/* サマリーストリップ */
 .summary-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -159,7 +158,7 @@ body {
 }
 
 /* =============================
-   スクロール領域（カテゴリ）
+   スクロール領域
    ============================= */
 .scroll-body {
   padding-top: 1.25rem;
@@ -246,31 +245,13 @@ body {
   border-color: var(--border-mid);
 }
 
-.day-cell.done {
-  border-color: transparent;
-}
-
-.day-cell.today {
-  box-shadow: 0 0 0 1.5px var(--border-mid);
-}
-
-.day-cell.future {
-  opacity: 0.3;
-  cursor: default;
-  pointer-events: none;
-}
-
-.day-cell.empty {
-  border: none;
-  background: none;
-  cursor: default;
-  pointer-events: none;
-}
+.day-cell.done { border-color: transparent; }
+.day-cell.today { box-shadow: 0 0 0 1.5px var(--border-mid); }
+.day-cell.future { opacity: 0.3; cursor: default; pointer-events: none; }
+.day-cell.empty { border: none; background: none; cursor: default; pointer-events: none; }
 
 /* 進捗バー */
-.progress-bar-wrap {
-  margin-top: 0.75rem;
-}
+.progress-bar-wrap { margin-top: 0.75rem; }
 
 .progress-meta {
   display: flex;
@@ -349,9 +330,7 @@ body {
   margin-top: 6px;
 }
 
-.total-time strong {
-  color: var(--text-primary);
-}
+.total-time strong { color: var(--text-primary); }
 
 .bar-chart {
   display: flex;
@@ -369,10 +348,7 @@ body {
   flex: 1;
 }
 
-.bar {
-  width: 100%;
-  border-radius: 3px 3px 0 0;
-}
+.bar { width: 100%; border-radius: 3px 3px 0 0; }
 
 .bar-dlabel {
   font-size: 9px;
@@ -452,8 +428,77 @@ body {
   font-family: inherit;
 }
 
-.add-row button:hover {
-  background: var(--bg-secondary);
+.add-row button:hover { background: var(--bg-secondary); }
+
+/* =============================
+   週別グラフアコーディオン
+   ============================= */
+.accordion {
+  margin-top: 0;
+  margin-bottom: 1rem;  /* ← 下にマージンを移す */
+}
+
+.acc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.acc-header:hover { background: var(--bg-secondary); }
+
+.acc-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.acc-title i { color: #534AB7; }
+
+.acc-icon {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  transition: transform 0.25s;
+}
+
+.acc-icon.open { transform: rotate(180deg); }
+
+.acc-body {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 0.5px solid var(--border-light);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0.75rem 0;
+}
+
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.leg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 200px;
 }
 
 /* リセットボタン */
@@ -478,9 +523,7 @@ body {
 }
 
 /* その他 */
-.confetti-wrap {
-  position: relative;
-}
+.confetti-wrap { position: relative; }
 
 .delete-btn {
   background: none;
